@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import google.generativeai as genai
@@ -124,10 +125,16 @@ if user_input:
                 if numbers:
                     amount = float(numbers[0])
 
+            # 🚨 If invalid or missing amount/type, show popup
             if t_type not in ["income", "expense"] or amount is None or amount <= 0:
-                raise ValueError(f"Invalid transaction data: {info}")
+                st.toast("⚠️ Please include a valid amount (e.g. '$200' or 'for 300').", icon="⚠️")
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": "⚠️ Please include a valid amount (e.g. '$200' or 'for 300')."
+                })
+                st.stop()
 
-            # Update balance
+            # ======= UPDATE BALANCE =======
             if t_type == "income":
                 balance += amount
             else:
@@ -149,12 +156,11 @@ if user_input:
             st.chat_message("assistant").markdown(ai_message)
             st.session_state.messages.append({"role": "assistant", "content": ai_message})
 
-            # ======= UPDATE SIDEBAR =======
             update_sidebar(df, balance)
 
         except Exception as e:
-            st.error("❌ Could not process model response.")
-            st.exception(e)
+            st.toast("❌ Oops! Something went wrong while processing your message.", icon="❌")
+
 
 # ============ TRANSACTION HISTORY ============
 st.subheader("🧾 Transaction History")
